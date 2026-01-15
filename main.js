@@ -1,11 +1,11 @@
 // main.js
 
 let games = loadData('games', initialGames);
-let users = loadData('users', initialUsers);
+let users = [];
 let currentUser = null;
 
-// Atualiza interface do utilizador (login/logout/admin)
-function updateUserUI() {
+  // Atualiza interface do utilizador (login/logout/admin)
+  function updateUserUI() {
     const greeting = document.getElementById('user-greeting');
     const loginBtn = document.getElementById('login-btn');
     const usernameDisplay = document.getElementById('username-display');
@@ -140,37 +140,13 @@ function renderFavorites() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    users = loadData('users', await loadUsersFromCSV());
     const saved = sessionStorage.getItem('currentUser');
     if (saved) {
         currentUser = JSON.parse(saved);
         updateUserUI();
     }
-
-    // Removed login-btn event listener since it's now a link to login.html
-
-    document.getElementById('login-form')?.addEventListener('submit', e => {
-        e.preventDefault();
-        const username = document.getElementById('username')?.value.trim();
-        const password = document.getElementById('password')?.value;
-
-        const user = users.find(u => u.username === username && u.password === password);
-        if (user) {
-            currentUser = user;
-            sessionStorage.setItem('currentUser', JSON.stringify(user));
-            updateUserUI();
-            closeLoginModal();
-            renderGames();
-            renderFavorites();
-            // If on login page, redirect to index
-            if (window.location.pathname.includes('login.html')) {
-                window.location.href = 'index.html';
-            }
-        } else {
-            alert('Credenciais inválidas!');
-        }
-    });
-
     
     document.getElementById('logout-btn')?.addEventListener('click', () => {
         currentUser = null;
