@@ -147,9 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUserUI();
     }
 
-    document.getElementById('login-btn')?.addEventListener('click', () => {
-        new bootstrap.Modal(document.getElementById('loginModal')).show();
-    });
+    // Removed login-btn event listener since it's now a link to login.html
 
     document.getElementById('login-form')?.addEventListener('submit', e => {
         e.preventDefault();
@@ -164,6 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
             closeLoginModal();
             renderGames();
             renderFavorites();
+            // If on login page, redirect to index
+            if (window.location.pathname.includes('login.html')) {
+                window.location.href = 'index.html';
+            }
         } else {
             alert('Credenciais inválidas!');
         }
