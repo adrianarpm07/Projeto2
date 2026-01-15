@@ -141,7 +141,7 @@ function renderFavorites() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    users = loadData('users', await loadUsersFromCSV());
+    users = await loadUsersFromTXT();
     const saved = sessionStorage.getItem('currentUser');
     if (saved) {
         currentUser = JSON.parse(saved);

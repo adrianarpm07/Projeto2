@@ -1,10 +1,10 @@
 // data.js
 
-async function loadUsersFromCSV() {
+async function loadUsersFromTXT() {
   try {
-    const response = await fetch('files/users.csv');
-    const csvText = await response.text();
-    const lines = csvText.trim().split('\n');
+    const response = await fetch('files/users.txt', { cache: 'no-cache' });
+    const txtText = await response.text();
+    const lines = txtText.trim().split('\n');
     const headers = lines[0].split(',');
     const users = [];
     for (let i = 1; i < lines.length; i++) {
@@ -25,7 +25,7 @@ async function loadUsersFromCSV() {
     }
     return users;
   } catch (error) {
-    console.error('Error loading users from CSV:', error);
+    console.error('Error loading users from TXT:', error);
     // Fallback to default
     return [
       { id: 1, username: "admin", password: "admin123", isAdmin: true, favorites: [] },

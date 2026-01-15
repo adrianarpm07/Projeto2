@@ -10,20 +10,39 @@ document.getElementById('register-form')?.addEventListener('submit', e => {
         return;
     }
 
-    if (users.find(u => u.username === username)) {
-        alert('Nome de utilizador já existe!');
-        return;
-    }
+    console.log('Sending registration data:', { username, email, password });
 
-    if (users.find(u => u.email === email)) {
-        alert('Email já registado!');
-        return;
-    }
-
-    const maxId = users.length > 0 ? Math.max(...users.map(u => u.id)) : 0;
-    const newUser = { id: maxId + 1, username, email, password, isAdmin: false, favorites: [] };
-    users.push(newUser);
-    saveData('users', users);
-    alert('Registo efetuado com sucesso! Faz login.');
-    window.location.href = 'login.html';
+    // Send to PHP to append to TXT
+    fetch('scripts/register.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            username: username,
+            email: email,
+            password: password
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.text();
+    })
+    .then(result => {
+        console.log('PHP response:', result);
+        if (result === 'success') {
+            alert('Registo efetuado com sucesso! Faz login.');
+            window.location.href = 'login.html';
+        } else if (result === 'error: username exists') {
+            alert('Nome de utilizador já existe!');
+        } else if (result === 'error: email exists') {
+            alert('Email já registado!');
+        } else {
+            alert('Erro no registo: ' + result);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert('Erro na ligação: ' + error.message);
+    });
 });
