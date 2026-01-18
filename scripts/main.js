@@ -141,8 +141,8 @@ function renderFavorites() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load games from CSV
-    games = await loadGamesFromCSV();
+    // Load games from TXT
+    games = await loadGamesFromTXT();
     
     // Load users from TXT
     users = await loadUsersFromTXT();

@@ -1,28 +1,7 @@
 // data.js
 
-function parseCSVLine(line) {
-  // Split only on the first 3 commas (4 fields total)
-  const parts = [];
-  let remaining = line;
-  
-  // Get first 3 fields
-  for (let i = 0; i < 3; i++) {
-    const commaIndex = remaining.indexOf(',');
-    if (commaIndex === -1) break;
-    parts.push(remaining.substring(0, commaIndex).trim());
-    remaining = remaining.substring(commaIndex + 1);
-  }
-  
-  // Everything remaining is the description (4th field)
-  if (remaining) {
-    parts.push(remaining.trim());
-  }
-  
-  return parts;
-}
-
-async function loadGamesFromCSV() {
-  console.log('Starting to load games from CSV...');
+async function loadGamesFromTXT() {
+  console.log('Starting to load games from TXT...');
   
   // Image mapping for each game
   const imageMap = {
@@ -57,33 +36,33 @@ async function loadGamesFromCSV() {
   };
   
   try {
-    const response = await fetch('files/jogos.csv', { cache: 'no-cache' });
+    const response = await fetch('files/jogos.txt', { cache: 'no-cache' });
     console.log('Fetch response status:', response.status);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const csvText = await response.text();
-    console.log('CSV text loaded, length:', csvText.length);
-    console.log('First 200 chars:', csvText.substring(0, 200));
+    const txtText = await response.text();
+    console.log('TXT text loaded, length:', txtText.length);
+    console.log('First 200 chars:', txtText.substring(0, 200));
     
     // Handle different line endings
-    const lines = csvText.trim().split(/\r?\n/);
+    const lines = txtText.trim().split(/\r?\n/);
     console.log('Number of lines:', lines.length);
     
     const games = [];
     
-    // Skip header row (index 0)
-    for (let i = 1; i < lines.length; i++) {
+    // Process each line (no header)
+    for (let i = 0; i < lines.length; i++) {
       if (!lines[i].trim()) continue; // Skip empty lines
       
-      const values = parseCSVLine(lines[i]);
-      console.log(`Line ${i}:`, values);
+      const values = lines[i].split('|').map(v => v.trim());
+      console.log(`Line ${i + 1}:`, values);
       
       const gameName = values[0] || 'Sem título';
       const game = {
-        id: i,
+        id: i + 1,
         title: gameName,
         genre: values[1] || 'Desconhecido',
         year: values[2] || 'N/A',
@@ -100,7 +79,7 @@ async function loadGamesFromCSV() {
     }
     return games;
   } catch (error) {
-    console.error('Error loading games from CSV:', error);
+    console.error('Error loading games from TXT:', error);
     console.log('Using fallback games');
     // Fallback to default games
     return [
@@ -128,22 +107,21 @@ async function loadUsersFromTXT() {
   try {
     const response = await fetch('files/users.txt', { cache: 'no-cache' });
     const txtText = await response.text();
-    const lines = txtText.trim().split('\n');
-    const headers = lines[0].split(',');
+    const lines = txtText.trim().split(/\r?\n/);
     const users = [];
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',');
-      const user = {};
-      headers.forEach((header, index) => {
-        user[header.trim()] = values[index].trim();
-      });
-      // Adapt to our format
+    
+    for (let i = 0; i < lines.length; i++) {
+      if (!lines[i].trim()) continue; // Skip empty lines
+      
+      const values = lines[i].split('|').map(v => v.trim());
+      
+      // Format: id|username|email|password|role
       users.push({
-        id: parseInt(user.id),
-        username: user.nome,
-        email: user.email,
-        password: user.password,
-        isAdmin: user.role === 'admin',
+        id: parseInt(values[0]),
+        username: values[1],
+        email: values[2],
+        password: values[3],
+        isAdmin: values[4] === 'admin',
         favorites: []
       });
     }

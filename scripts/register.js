@@ -1,4 +1,4 @@
-document.getElementById('register-form')?.addEventListener('submit', e => {
+document.getElementById('register-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('username')?.value.trim();
     const email = document.getElementById('email')?.value.trim();
@@ -10,39 +10,54 @@ document.getElementById('register-form')?.addEventListener('submit', e => {
         return;
     }
 
-    console.log('Sending registration data:', { username, email, password });
+    console.log('Registering user:', { username, email });
 
-    // Send to PHP to append to TXT
-    fetch('scripts/register.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-            username: username,
-            email: email,
-            password: password
-        })
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.text();
-    })
-    .then(result => {
-        console.log('PHP response:', result);
-        if (result === 'success') {
-            alert('Registo efetuado com sucesso! Faz login.');
-            window.location.href = 'login.html';
-        } else if (result === 'error: username exists') {
-            alert('Nome de utilizador já existe!');
-        } else if (result === 'error: email exists') {
-            alert('Email já registado!');
-        } else {
-            alert('Erro no registo: ' + result);
+    try {
+        // Load existing users
+        const response = await fetch('files/users.txt', { cache: 'no-cache' });
+        const txtText = await response.text();
+        const lines = txtText.trim().split(/\r?\n/);
+        
+        let maxId = 0;
+        const existingUsers = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            
+            const values = lines[i].split('|').map(v => v.trim());
+            const userId = parseInt(values[0]);
+            const userName = values[1];
+            const userEmail = values[2];
+            
+            if (userId > maxId) maxId = userId;
+            
+            // Check if username or email already exists
+            if (userName === username) {
+                alert('Nome de utilizador já existe!');
+                return;
+            }
+            if (userEmail === email) {
+                alert('Email já registado!');
+                return;
+            }
+            
+            existingUsers.push(lines[i]);
         }
-    })
-    .catch(error => {
-        console.error('Fetch error:', error);
-        alert('Erro na ligação: ' + error.message);
-    });
+        
+        // Create new user
+        const newId = maxId + 1;
+        const newLine = `${newId}|${username}|${email}|${password}|user`;
+        existingUsers.push(newLine);
+        
+        // Save back to file (Note: This won't work in browser without server-side)
+        // Since we're removing PHP, we'll use localStorage as an alternative
+        localStorage.setItem('pendingUsers', JSON.stringify(existingUsers));
+        
+        alert('Registo efetuado com sucesso! Faz login.\n\nNota: Para persistir dados, é necessário um servidor. Os dados estão em localStorage.');
+        window.location.href = 'login.html';
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('Erro no registo: ' + error.message);
+    }
 });
