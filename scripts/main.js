@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderGames(games.filter(g => 
             g.title.toLowerCase().includes(term) || 
             g.genre.toLowerCase().includes(term) || 
+            g.year.toLowerCase().includes(term) || 
             g.description.toLowerCase().includes(term)
         ));
     });
