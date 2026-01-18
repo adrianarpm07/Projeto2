@@ -79,6 +79,7 @@ h1, h2, h3, h4, h5 {
     perspective: 1000px;
     height: 450px;
     cursor: pointer;
+    position: relative;
 }
 
 .flip-card-inner {
@@ -96,7 +97,10 @@ h1, h2, h3, h4, h5 {
 .flip-card-front,
 .flip-card-back {
     position: absolute;
-    inset: 0;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
     backface-visibility: hidden;
     border-radius: 1.25rem;
     overflow: hidden;
@@ -106,42 +110,43 @@ h1, h2, h3, h4, h5 {
 .flip-card-front {
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
-    position: relative;
+    border: 1px solid var(--border-light);
 }
 
 .flip-card-front img {
     width: 100%;
-    height: 450px;
+    height: 100%;
     object-fit: cover;
     object-position: center;
     display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
 }
 
-.flip-card-front .bg-gradient-to-t {
+.flip-card-front .position-absolute.bottom-0 {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     padding: 1.5rem 1rem;
-    background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 65%);
+    background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%);
+    z-index: 2;
 }
 
 .flip-card-front h5 {
     text-shadow: 2px 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8);
+    color: white !important;
 }
 
 .flip-card-front .badge {
     text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
 }
 
+.favorite-btn {
+    z-index: 3;
+}
+
 
 .flip-card-back {
-    background: #0b0b22 !important;
+    background: linear-gradient(135deg, #0b0b22 0%, #1a1a3e 100%) !important;
     color: white !important;
     transform: rotateY(180deg);
     padding: 3.5rem 1.8rem 2rem 1.8rem;   
@@ -153,6 +158,7 @@ h1, h2, h3, h4, h5 {
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #00f5ff44 #111133;
+    border: 1px solid var(--border-light);
 }
 
 .flip-card-back h5 {
@@ -177,7 +183,6 @@ h1, h2, h3, h4, h5 {
     margin-top: auto;
 }
 
-/* Scrollbar */
 .flip-card-back::-webkit-scrollbar {
     width: 5px;
 }
@@ -195,7 +200,36 @@ h1, h2, h3, h4, h5 {
     background: #00f5ff88;
 }
 
-/* Hover */
 .flip-card:hover:not(.flipped) .flip-card-inner {
     transform: scale(1.025);
+}
+
+#games-grid {
+    min-height: 400px;
+}
+
+#games-grid .col-md-6,
+#games-grid .col-lg-4 {
+    display: flex;
+}
+
+#games-grid .flip-card {
+    width: 100%;
+}
+
+.form-control-dark {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
+    color: white;
+}
+
+.form-control-dark:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 0 0.2rem rgba(0, 245, 255, 0.25);
+}
+
+.form-control-dark::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }

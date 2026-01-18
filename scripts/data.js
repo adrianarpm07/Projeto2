@@ -1,9 +1,4 @@
-// data.js
-
 async function loadGamesFromTXT() {
-  console.log('Starting to load games from TXT...');
-  
-  // Image mapping for each game
   const imageMap = {
     'Minecraft': 'images/Minecraft.jpg',
     'Higurashi When They Cry': 'images/Higurashi.jpg',
@@ -37,130 +32,40 @@ async function loadGamesFromTXT() {
   
   try {
     const response = await fetch('files/jogos.txt', { cache: 'no-cache' });
-    console.log('Fetch response status:', response.status);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const txtText = await response.text();
-    console.log('TXT text loaded, length:', txtText.length);
-    console.log('First 200 chars:', txtText.substring(0, 200));
-    
-    // Handle different line endings
-    const lines = txtText.trim().split(/\r?\n/);
-    console.log('Number of lines:', lines.length);
-    
-    const games = [];
-    
-    // Process each line (no header)
-    for (let i = 0; i < lines.length; i++) {
-      if (!lines[i].trim()) continue; // Skip empty lines
-      
-      const values = lines[i].split('|').map(v => v.trim());
-      console.log(`Line ${i + 1}:`, values);
-      
-      const gameName = values[0] || 'Sem título';
-      const game = {
+    const lines = (await response.text()).trim().split(/\r?\n/);
+    const games = lines.filter(l => l.trim()).map((line, i) => {
+      const [title = 'Sem título', genre = 'Desconhecido', year = 'N/A', description = 'Descrição em breve...'] = line.split('|').map(v => v.trim());
+      return {
         id: i + 1,
-        title: gameName,
-        genre: values[1] || 'Desconhecido',
-        year: values[2] || 'N/A',
-        description: values[3] || 'Descrição em breve...',
-        image: imageMap[gameName] || 'images/rocket.jpg'
+        title,
+        genre,
+        year,
+        description,
+        image: imageMap[title] || 'images/rocket.jpg'
       };
-      games.push(game);
-    }
-    
-    console.log('Successfully loaded games:', games.length);
-    if (games.length > 0) {
-      console.log('First game:', games[0]);
-      console.log('Last game:', games[games.length - 1]);
-    }
+    });
+    console.log(`Loaded ${games.length} games`);
     return games;
   } catch (error) {
-    console.error('Error loading games from TXT:', error);
-    console.log('Using fallback games');
-    // Fallback to default games
-    return [
-      {
-        id: 1,
-        title: "Counter-Strike",
-        genre: "FPS, Competitivo",
-        year: "1999",
-        image: "images/rocket.jpg",
-        description: "Clássico shooter tático online."
-      },
-      {
-        id: 2,
-        title: "Rocket League",
-        genre: "Desportivo, Carros",
-        year: "2015",
-        image: "images/rocket.jpg",
-        description: "Futebol futurista com carros!"
-      }
-    ];
+    console.error('Error loading games:', error);
+    return [];
   }
 }
 
 async function loadUsersFromTXT() {
   try {
     const response = await fetch('files/users.txt', { cache: 'no-cache' });
-    const txtText = await response.text();
-    const lines = txtText.trim().split(/\r?\n/);
-    const users = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-      if (!lines[i].trim()) continue; // Skip empty lines
-      
-      const values = lines[i].split('|').map(v => v.trim());
-      
-      // Format: id|username|email|password|role
-      users.push({
-        id: parseInt(values[0]),
-        username: values[1],
-        email: values[2],
-        password: values[3],
-        isAdmin: values[4] === 'admin',
-        favorites: []
-      });
-    }
+    const lines = (await response.text()).trim().split(/\r?\n/);
+    const users = lines.filter(l => l.trim()).map(line => {
+      const [id, username, email, password, role] = line.split('|').map(v => v.trim());
+      return { id: parseInt(id), username, email, password, isAdmin: role === 'admin', favorites: [] };
+    });
+    console.log(`Loaded ${users.length} users`);
     return users;
   } catch (error) {
-    console.error('Error loading users from TXT:', error);
-    // Fallback to default
-    return [
-      { id: 1, username: "admin", password: "admin123", isAdmin: true, favorites: [] },
-      { id: 2, username: "jogador", password: "jogador123", isAdmin: false, favorites: [] }
-    ];
+    console.error('Error loading users:', error);
+    return [];
   }
-}
-
-const initialGames = [
-  {
-    id: 1,
-    title: "Counter-Strike",
-    genre: "FPS, Competitivo",
-    platform: "PC",
-    image: "images/cs.jpg",
-    description: "Clássico shooter tático online onde equipas de Terroristas e Contra-Terroristas competem em objetivos como plantar/desarmar bombas. Foco em estratégia, precisão e trabalho de equipa."
-  },
-  {
-    id: 2,
-    title: "Rocket League",
-    genre: "Desportivo, Carros",
-    platform: "PC, Consolas",
-    image: "images/rocket.jpg",
-    description: "Futebol futurista e caótico com carros movidos a foguete! Usa o teu carro para marcar golos, fazer manobras aéreas e criar jogadas épicas em partidas rápidas e viciantes."
-  },
-  // adicionar mais jogos aqui
-];
-
-function loadData(key, defaultValue) {
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : defaultValue;
-}
-
-function saveData(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
 }

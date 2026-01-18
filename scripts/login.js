@@ -1,21 +1,30 @@
-document.getElementById('login-form')?.addEventListener('submit', e => {
+document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const username = document.getElementById('username')?.value.trim();
-    const password = document.getElementById('password')?.value;
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
 
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
-        currentUser = user;
-        sessionStorage.setItem('currentUser', JSON.stringify(user));
-        updateUserUI();
-        closeLoginModal();
-        renderGames();
-        renderFavorites();
-        // If on login page, redirect to index
-        if (window.location.pathname.includes('login.html')) {
-            window.location.href = 'index.html';
+    try {
+        const response = await fetch('files/users.txt', { cache: 'no-cache' });
+        const lines = (await response.text()).trim().split(/\r?\n/);
+        
+        let foundUser = lines.filter(l => l.trim()).map(line => {
+            const [id, user, email, pass, role] = line.split('|').map(v => v.trim());
+            return { id: parseInt(id), username: user, email, password: pass, isAdmin: role === 'admin', favorites: [] };
+        }).find(u => u.username === username && u.password === password);
+        
+        if (!foundUser) {
+            const localUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            foundUser = localUsers.find(u => u.username === username && u.password === password);
+            if (foundUser) foundUser = { ...foundUser, isAdmin: foundUser.role === 'admin', favorites: [] };
         }
-    } else {
-        alert('Credenciais inválidas!');
+        
+        if (foundUser) {
+            sessionStorage.setItem('currentUser', JSON.stringify(foundUser));
+            window.location.href = 'index.html';
+        } else {
+            alert('Credenciais inválidas!');
+        }
+    } catch (error) {
+        alert('Erro ao fazer login: ' + error.message);
     }
 });
