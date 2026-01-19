@@ -20,6 +20,33 @@ function updateUserUI() {
     }
 }
 
+function updateStarDisplay(gameId) {
+    const rating = currentUser?.ratings?.[gameId] || 0;
+    const container = document.querySelector(`.rating-container[data-game-id="${gameId}"]`);
+    const textEl = document.querySelector(`.rating-text[data-game-id="${gameId}"]`);
+    
+    if (container) {
+        const stars = container.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.remove('empty');
+                star.classList.add('full');
+            } else {
+                star.classList.add('empty');
+                star.classList.remove('full');
+            }
+        });
+    }
+    
+    if (textEl) {
+        if (rating > 0) {
+            textEl.textContent = `Sua avaliação: ${rating}⭐`;
+        } else {
+            textEl.textContent = 'Clique para avaliar';
+        }
+    }
+}
+
 function renderGames(filteredGames = games) {
     const grid = document.getElementById('games-grid');
     if (!grid) return;
@@ -46,11 +73,17 @@ function renderGames(filteredGames = games) {
                                     <span class="badge bg-dark text-secondary">${game.year}</span>
                                 </div>
                             </div>
-                            ${currentUser ? `<button class="btn btn-sm ${isFavorite ? 'btn-danger' : 'btn-outline-danger'} favorite-btn position-absolute top-0 end-0 m-3" data-game-id="${game.id}"><i class="bi ${isFavorite ? 'bi-heart-fill' : 'bi-heart'}"></i></button>` : ''}
+                            ${currentUser ? `<button class="favorite-btn position-absolute top-0 end-0 m-3" data-game-id="${game.id}" style="background: transparent; border: none; padding: 0; cursor: pointer; font-size: 1.8rem; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; color: #ff4757; line-height: 1; outline: none;" title="Adicionar aos favoritos">${isFavorite ? '❤︎⁠' : '♡'}</button>` : ''}
                         </div>
                         <div class="flip-card-back d-flex flex-column p-4 text-center" style="overflow-y: auto; padding-top: 3rem !important; padding-bottom: 2rem !important;">
                             <h5 class="fw-bold mb-3 text-gradient">${game.title}</h5>
                             <p class="text-white opacity-85 mb-3" style="font-size: 0.9rem; line-height: 1.4;">${game.description}</p>
+                            ${currentUser ? `
+                            <div class="rating-container" data-game-id="${game.id}">
+                                ${[1, 2, 3, 4, 5].map(i => `<span class="star empty" data-rating="${i}" style="user-select: none;">★</span>`).join('')}
+                            </div>
+                            <div class="rating-text" data-game-id="${game.id}">Clique para avaliar</div>
+                            ` : '<p class="text-white-50" style="font-size: 0.9rem;">Faça login para avaliar</p>'}
                             <small class="opacity-60 mt-auto">Género: ${game.genre}<br>Ano: ${game.year}</small>
                         </div>
                     </div>
@@ -60,6 +93,11 @@ function renderGames(filteredGames = games) {
 
     const countEl = document.getElementById('results-count');
     if (countEl) countEl.textContent = `${filteredGames.length} jogo${filteredGames.length !== 1 ? 's' : ''} encontrado${filteredGames.length !== 1 ? 's' : ''}`;
+    
+    // Update star displays for all games
+    if (currentUser) {
+        filteredGames.forEach(game => updateStarDisplay(game.id));
+    }
 }
 
 function renderFavorites() {
@@ -112,7 +150,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     document.addEventListener('click', e => {
         const card = e.target.closest('.flip-card');
-        if (card && !e.target.closest('.favorite-btn')) card.classList.toggle('flipped');
+        if (card && !e.target.closest('.favorite-btn') && !e.target.closest('.star')) card.classList.toggle('flipped');
+        
+        // Handle star rating clicks
+        if (e.target.closest('.star')) {
+            const star = e.target.closest('.star');
+            const container = star.closest('.rating-container');
+            const gameId = parseInt(container.dataset.gameId);
+            const rating = parseInt(star.dataset.rating);
+            
+            if (!currentUser.ratings) currentUser.ratings = {};
+            currentUser.ratings[gameId] = rating;
+            
+            sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            updateStarDisplay(gameId);
+        }
         
         if (e.target.closest('.favorite-btn')) {
             if (!currentUser) return alert('Por favor, faça login para adicionar favoritos');

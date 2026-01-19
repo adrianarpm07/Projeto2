@@ -59,8 +59,33 @@ async function loadUsersFromTXT() {
     const response = await fetch('files/users.txt', { cache: 'no-cache' });
     const lines = (await response.text()).trim().split(/\r?\n/);
     const users = lines.filter(l => l.trim()).map(line => {
-      const [id, username, email, password, role] = line.split('|').map(v => v.trim());
-      return { id: parseInt(id), username, email, password, isAdmin: role === 'admin', favorites: [] };
+      const parts = line.split('|').map(v => v.trim());
+      const [id, username, email, password, role, ratingsStr] = parts;
+      const ratings = {};
+      
+      // Parse ratings if they exist (format: "1:5,2:3,5:4" means game 1: 5 stars, game 2: 3 stars, etc)
+      if (ratingsStr) {
+        try {
+          ratingsStr.split(',').forEach(pair => {
+            const [gameId, score] = pair.split(':');
+            if (gameId && score) {
+              ratings[parseInt(gameId)] = parseInt(score);
+            }
+          });
+        } catch (e) {
+          console.log('Error parsing ratings:', e);
+        }
+      }
+      
+      return { 
+        id: parseInt(id), 
+        username, 
+        email, 
+        password, 
+        isAdmin: role === 'admin', 
+        favorites: [],
+        ratings: ratings
+      };
     });
     console.log(`Loaded ${users.length} users`);
     return users;
