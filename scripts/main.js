@@ -148,7 +148,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     games = await loadGamesFromTXT();
     users = await loadUsersFromTXT();
     
-    // Carregar jogos adicionados temporariamente
     const tempGames = localStorage.getItem('gamevault_games');
     if (tempGames) {
         games = JSON.parse(tempGames);
@@ -227,7 +226,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         ));
     });
     
-    // Admin: Adicionar novo jogo
     document.getElementById('add-game-form')?.addEventListener('submit', async e => {
         e.preventDefault();
         
@@ -237,13 +235,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         const formData = new FormData(e.target);
+        let imageUrl = formData.get('image') || '';
+        
+        if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('images/')) {
+            imageUrl = 'images/' + imageUrl;
+        }
+        
+        if (!imageUrl) {
+            imageUrl = 'images/rocket.jpg';
+        }
+        
         const newGame = {
             id: games.length + 1,
             title: formData.get('title') || '',
             genre: formData.get('genre') || 'Desconhecido',
             year: formData.get('year') || new Date().getFullYear().toString(),
             description: formData.get('description') || '',
-            image: formData.get('image') || 'images/rocket.jpg'
+            image: imageUrl
         };
         
         if (!newGame.title.trim() || !newGame.genre.trim() || !newGame.description.trim()) {
@@ -253,23 +261,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         games.push(newGame);
         
-        // Salvar no ficheiro
         try {
             const gameLines = games.map(g => 
                 `${g.title}|${g.genre}|${g.year}|${g.description}`
             ).join('\n');
             
-            // Nota: Para guardar realmente no servidor, seria necessário um backend
             console.log('Jogo adicionado:', newGame);
             console.log('Dados para guardar:\n', gameLines);
             
-            // Guardar temporariamente no localStorage
             localStorage.setItem('gamevault_games', JSON.stringify(games));
             
             alert(`Jogo "${newGame.title}" adicionado com sucesso!`);
             e.target.reset();
             
-            // Redirecionar para o catálogo para ver o jogo
             window.location.href = 'index.html';
         } catch (error) {
             console.error('Erro ao adicionar jogo:', error);
