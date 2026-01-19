@@ -12,7 +12,6 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             const [id, user, email, pass, role, ratingsStr] = parts;
             const ratings = {};
             
-            // Parse ratings
             if (ratingsStr) {
                 try {
                     ratingsStr.split(',').forEach(pair => {
@@ -51,6 +50,10 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
         }
         
         if (foundUser) {
+            const savedData = JSON.parse(localStorage.getItem(`gamevault_${username}`) || '{"favorites":[],"ratings":{}}');
+            foundUser.favorites = savedData.favorites;
+            foundUser.ratings = savedData.ratings;
+            
             sessionStorage.setItem('currentUser', JSON.stringify(foundUser));
             window.location.href = 'index.html';
         } else {

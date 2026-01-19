@@ -62,8 +62,7 @@ async function loadUsersFromTXT() {
       const parts = line.split('|').map(v => v.trim());
       const [id, username, email, password, role, ratingsStr] = parts;
       const ratings = {};
-      
-      // Parse ratings if they exist (format: "1:5,2:3,5:4" means game 1: 5 stars, game 2: 3 stars, etc)
+
       if (ratingsStr) {
         try {
           ratingsStr.split(',').forEach(pair => {

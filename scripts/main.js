@@ -2,6 +2,21 @@ let games = [];
 let users = [];
 let currentUser = null;
 
+function saveUserData(user) {
+    if (user && user.username) {
+        const userData = {
+            favorites: user.favorites || [],
+            ratings: user.ratings || {}
+        };
+        localStorage.setItem(`gamevault_${user.username}`, JSON.stringify(userData));
+    }
+}
+
+function loadUserData(username) {
+    const data = localStorage.getItem(`gamevault_${username}`);
+    return data ? JSON.parse(data) : { favorites: [], ratings: {} };
+}
+
 function updateUserUI() {
     const greeting = document.getElementById('user-greeting');
     const loginBtn = document.getElementById('login-btn');
@@ -93,8 +108,7 @@ function renderGames(filteredGames = games) {
 
     const countEl = document.getElementById('results-count');
     if (countEl) countEl.textContent = `${filteredGames.length} jogo${filteredGames.length !== 1 ? 's' : ''} encontrado${filteredGames.length !== 1 ? 's' : ''}`;
-    
-    // Update star displays for all games
+
     if (currentUser) {
         filteredGames.forEach(game => updateStarDisplay(game.id));
     }
@@ -137,6 +151,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const saved = sessionStorage.getItem('currentUser');
     if (saved) {
         currentUser = JSON.parse(saved);
+        const savedData = loadUserData(currentUser.username);
+        currentUser.favorites = savedData.favorites;
+        currentUser.ratings = savedData.ratings;
         updateUserUI();
     }
     
@@ -151,8 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('click', e => {
         const card = e.target.closest('.flip-card');
         if (card && !e.target.closest('.favorite-btn') && !e.target.closest('.star')) card.classList.toggle('flipped');
-        
-        // Handle star rating clicks
+
         if (e.target.closest('.star')) {
             const star = e.target.closest('.star');
             const container = star.closest('.rating-container');
@@ -163,6 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentUser.ratings[gameId] = rating;
             
             sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            saveUserData(currentUser);
             updateStarDisplay(gameId);
         }
         
@@ -176,6 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             index > -1 ? currentUser.favorites.splice(index, 1) : currentUser.favorites.push(gameId);
             
             sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            saveUserData(currentUser);
             renderGames();
             renderFavorites();
         }
@@ -186,6 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (index > -1) {
                 currentUser.favorites.splice(index, 1);
                 sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+                saveUserData(currentUser);
                 renderFavorites();
                 renderGames();
             }
