@@ -46,10 +46,8 @@ async function loadGamesFromTXT() {
         image: imageMap[title] || 'images/rocket.jpg'
       };
     });
-    console.log(`Loaded ${games.length} games`);
     return games;
   } catch (error) {
-    console.error('Error loading games:', error);
     return [];
   }
 }
@@ -62,10 +60,8 @@ async function loadUsersFromTXT() {
       const [id, username, email, password, role] = line.split('|').map(v => v.trim());
       return { id: parseInt(id), username, email, password, isAdmin: role === 'admin', favorites: [] };
     });
-    console.log(`Loaded ${users.length} users`);
     return users;
   } catch (error) {
-    console.error('Error loading users:', error);
     return [];
   }
 }

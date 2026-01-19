@@ -24,8 +24,6 @@ function renderGames(filteredGames = games) {
     const grid = document.getElementById('games-grid');
     if (!grid) return;
 
-    console.log('Rendering games, count:', filteredGames.length);
-
     if (filteredGames.length === 0) {
         grid.innerHTML = '<div class="col-12 text-center py-5"><p class="fs-4 text-white opacity-75">Nenhum jogo encontrado...</p></div>';
         return;
