@@ -148,6 +148,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     games = await loadGamesFromTXT();
     users = await loadUsersFromTXT();
     
+    // Carregar jogos adicionados temporariamente
+    const tempGames = localStorage.getItem('gamevault_games');
+    if (tempGames) {
+        games = JSON.parse(tempGames);
+    }
+    
     const saved = sessionStorage.getItem('currentUser');
     if (saved) {
         currentUser = JSON.parse(saved);
@@ -219,6 +225,56 @@ document.addEventListener('DOMContentLoaded', async () => {
             g.year.toLowerCase().includes(term) || 
             g.description.toLowerCase().includes(term)
         ));
+    });
+    
+    // Admin: Adicionar novo jogo
+    document.getElementById('add-game-form')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        
+        if (!currentUser || !currentUser.isAdmin) {
+            alert('Apenas administradores podem adicionar jogos.');
+            return;
+        }
+        
+        const formData = new FormData(e.target);
+        const newGame = {
+            id: games.length + 1,
+            title: formData.get('title') || '',
+            genre: formData.get('genre') || 'Desconhecido',
+            year: formData.get('year') || new Date().getFullYear().toString(),
+            description: formData.get('description') || '',
+            image: formData.get('image') || 'images/rocket.jpg'
+        };
+        
+        if (!newGame.title.trim() || !newGame.genre.trim() || !newGame.description.trim()) {
+            alert('Por favor, preencha todos os campos obrigatórios.');
+            return;
+        }
+        
+        games.push(newGame);
+        
+        // Salvar no ficheiro
+        try {
+            const gameLines = games.map(g => 
+                `${g.title}|${g.genre}|${g.year}|${g.description}`
+            ).join('\n');
+            
+            // Nota: Para guardar realmente no servidor, seria necessário um backend
+            console.log('Jogo adicionado:', newGame);
+            console.log('Dados para guardar:\n', gameLines);
+            
+            // Guardar temporariamente no localStorage
+            localStorage.setItem('gamevault_games', JSON.stringify(games));
+            
+            alert(`Jogo "${newGame.title}" adicionado com sucesso!`);
+            e.target.reset();
+            
+            // Redirecionar para o catálogo para ver o jogo
+            window.location.href = 'index.html';
+        } catch (error) {
+            console.error('Erro ao adicionar jogo:', error);
+            alert('Erro ao adicionar jogo. Verifique a consola.');
+        }
     });
 
     renderGames();
