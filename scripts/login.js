@@ -8,14 +8,46 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
         const lines = (await response.text()).trim().split(/\r?\n/);
         
         let foundUser = lines.filter(l => l.trim()).map(line => {
-            const [id, user, email, pass, role] = line.split('|').map(v => v.trim());
-            return { id: parseInt(id), username: user, email, password: pass, isAdmin: role === 'admin', favorites: [] };
+            const parts = line.split('|').map(v => v.trim());
+            const [id, user, email, pass, role, ratingsStr] = parts;
+            const ratings = {};
+            
+            // Parse ratings
+            if (ratingsStr) {
+                try {
+                    ratingsStr.split(',').forEach(pair => {
+                        const [gameId, score] = pair.split(':');
+                        if (gameId && score) {
+                            ratings[parseInt(gameId)] = parseInt(score);
+                        }
+                    });
+                } catch (e) {
+                    console.log('Error parsing ratings:', e);
+                }
+            }
+            
+            return { 
+                id: parseInt(id), 
+                username: user, 
+                email, 
+                password: pass, 
+                isAdmin: role === 'admin', 
+                favorites: [],
+                ratings: ratings
+            };
         }).find(u => u.username === username && u.password === password);
         
         if (!foundUser) {
             const localUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
             foundUser = localUsers.find(u => u.username === username && u.password === password);
-            if (foundUser) foundUser = { ...foundUser, isAdmin: foundUser.role === 'admin', favorites: [] };
+            if (foundUser) {
+                foundUser = { 
+                    ...foundUser, 
+                    isAdmin: foundUser.role === 'admin', 
+                    favorites: [],
+                    ratings: foundUser.ratings || {}
+                };
+            }
         }
         
         if (foundUser) {
