@@ -1,7 +1,9 @@
+// Variáveis globais
 let games = [];
 let users = [];
 let currentUser = null;
 
+// Guardar favoritos e avaliações do utilizador
 function saveUserData(user) {
     if (user && user.username) {
         const userData = {
@@ -12,11 +14,13 @@ function saveUserData(user) {
     }
 }
 
+// Carregar dados armazenados do utilizador
 function loadUserData(username) {
     const data = localStorage.getItem(`gamevault_${username}`);
     return data ? JSON.parse(data) : { favorites: [], ratings: {} };
 }
 
+// Atualizar interface conforme o utilizador (login/logout/admin)
 function updateUserUI() {
     const greeting = document.getElementById('user-greeting');
     const loginBtn = document.getElementById('login-btn');
@@ -35,6 +39,7 @@ function updateUserUI() {
     }
 }
 
+// Atualizar visualização das estrelas de avaliação
 function updateStarDisplay(gameId) {
     const rating = currentUser?.ratings?.[gameId] || 0;
     const container = document.querySelector(`.rating-container[data-game-id="${gameId}"]`);
@@ -62,11 +67,12 @@ function updateStarDisplay(gameId) {
     }
 }
 
+// Renderizar grid de jogos na página
 function renderGames(filteredGames = games) {
     const grid = document.getElementById('games-grid');
     if (!grid) return;
 
-    console.log('Rendering games, count:', filteredGames.length);
+    console.log('Renderizando jogos, total:', filteredGames.length);
 
     if (filteredGames.length === 0) {
         grid.innerHTML = '<div class="col-12 text-center py-5"><p class="fs-4 text-white opacity-75">Nenhum jogo encontrado...</p></div>';
@@ -113,7 +119,7 @@ function renderGames(filteredGames = games) {
         filteredGames.forEach(game => updateStarDisplay(game.id));
     }
 }
-
+// Renderizar grid de favoritos
 function renderFavorites() {
     const grid = document.getElementById('favorites-grid');
     const empty = document.getElementById('empty-favorites');
@@ -144,7 +150,9 @@ function renderFavorites() {
         </div>`).join('');
 }
 
+// Inicializar aplicação quando DOM está carregado
 document.addEventListener('DOMContentLoaded', async () => {
+    // Carregar dados iniciais
     games = await loadGamesFromTXT();
     users = await loadUsersFromTXT();
     
@@ -153,6 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         games = JSON.parse(tempGames);
     }
     
+    // Restaurar utilizador da sessão anterior
     const saved = sessionStorage.getItem('currentUser');
     if (saved) {
         currentUser = JSON.parse(saved);
@@ -162,6 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateUserUI();
     }
     
+    // Botão de logout
     document.getElementById('logout-btn')?.addEventListener('click', () => {
         currentUser = null;
         sessionStorage.removeItem('currentUser');
@@ -170,10 +180,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderFavorites();
     });
     
+    // Gestionar eventos de cliques em elementos dinâmicos
     document.addEventListener('click', e => {
+        // Virar card ao clicar
         const card = e.target.closest('.flip-card');
         if (card && !e.target.closest('.favorite-btn') && !e.target.closest('.star')) card.classList.toggle('flipped');
 
+        // Atribuir avaliação ao clicar na estrela
         if (e.target.closest('.star')) {
             const star = e.target.closest('.star');
             const container = star.closest('.rating-container');
@@ -188,6 +201,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateStarDisplay(gameId);
         }
         
+        // Adicionar/remover de favoritos
         if (e.target.closest('.favorite-btn')) {
             if (!currentUser) return alert('Por favor, faça login para adicionar favoritos');
             
@@ -203,6 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderFavorites();
         }
         
+        // Remover dos favoritos (página de favoritos)
         if (e.target.closest('.remove-fav-btn')) {
             const gameId = parseInt(e.target.closest('.remove-fav-btn').dataset.gameId);
             const index = currentUser.favorites.indexOf(gameId);
@@ -216,6 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
+    // Filtrar jogos pela pesquisa
     document.getElementById('search-input')?.addEventListener('input', e => {
         const term = e.target.value.toLowerCase();
         renderGames(games.filter(g => 
@@ -226,14 +242,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         ));
     });
     
+    // Adicionar novo jogo (apenas admin)
     document.getElementById('add-game-form')?.addEventListener('submit', async e => {
         e.preventDefault();
         
+        // Validar permissões de admin
         if (!currentUser || !currentUser.isAdmin) {
             alert('Apenas administradores podem adicionar jogos.');
             return;
         }
         
+        // Processar dados do formulário
         const formData = new FormData(e.target);
         let imageUrl = formData.get('image') || '';
         
@@ -245,6 +264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             imageUrl = 'images/rocket.jpg';
         }
         
+        // Criar objeto do novo jogo
         const newGame = {
             id: games.length + 1,
             title: formData.get('title') || '',
@@ -259,15 +279,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         
+        // Adicionar à lista e guardar
         games.push(newGame);
         
         try {
+            // Preparar dados para armazenamento
             const gameLines = games.map(g => 
                 `${g.title}|${g.genre}|${g.year}|${g.description}`
             ).join('\n');
             
-            console.log('Jogo adicionado:', newGame);
-            console.log('Dados para guardar:\n', gameLines);
+            console.log('Jogo adicionado com sucesso:', newGame);
+            console.log('Dados armazenados:\n', gameLines);
             
             localStorage.setItem('gamevault_games', JSON.stringify(games));
             

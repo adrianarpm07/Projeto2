@@ -1,12 +1,16 @@
+// Evento de submissão do formulário de login
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    // Obter valores do formulário
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
 
     try {
+        // Carregar utilizadores do ficheiro de texto
         const response = await fetch('files/users.txt', { cache: 'no-cache' });
         const lines = (await response.text()).trim().split(/\r?\n/);
         
+        // Processar e pesquisar utilizador no ficheiro
         let foundUser = lines.filter(l => l.trim()).map(line => {
             const parts = line.split('|').map(v => v.trim());
             const [id, user, email, pass, role, ratingsStr] = parts;
@@ -21,7 +25,7 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
                         }
                     });
                 } catch (e) {
-                    console.log('Error parsing ratings:', e);
+                    console.log('Erro ao processar avaliações:', e);
                 }
             }
             
@@ -36,6 +40,7 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             };
         }).find(u => u.username === username && u.password === password);
         
+        // Se não encontrou no ficheiro, procurar no localStorage
         if (!foundUser) {
             const localUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
             foundUser = localUsers.find(u => u.username === username && u.password === password);
@@ -48,11 +53,13 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
                 };
             }
         }
-        
+        // Se o utilizador existe, carregar dados e criar sessão
         if (foundUser) {
             const savedData = JSON.parse(localStorage.getItem(`gamevault_${username}`) || '{"favorites":[],"ratings":{}}');
             foundUser.favorites = savedData.favorites;
             foundUser.ratings = savedData.ratings;
+            
+            // Guardar na sessão e redirecionarfoundUser.ratings = savedData.ratings;
             
             sessionStorage.setItem('currentUser', JSON.stringify(foundUser));
             window.location.href = 'index.html';

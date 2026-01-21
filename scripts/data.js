@@ -1,3 +1,4 @@
+// Carregar jogos do ficheiro de texto com mapa de imagens
 async function loadGamesFromTXT() {
   const imageMap = {
     'Minecraft': 'images/Minecraft.jpg',
@@ -30,7 +31,9 @@ async function loadGamesFromTXT() {
     'Umamusume: Pretty Derby': 'images/Umamusume.jpg'
   };
   
+  
   try {
+    // Buscar e processar ficheiro de jogos
     const response = await fetch('files/jogos.txt', { cache: 'no-cache' });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
@@ -46,16 +49,18 @@ async function loadGamesFromTXT() {
         image: imageMap[title] || 'images/rocket.jpg'
       };
     });
-    console.log(`Loaded ${games.length} games`);
+    console.log(`${games.length} jogos carregados`);
     return games;
   } catch (error) {
-    console.error('Error loading games:', error);
+    console.error('Erro ao carregar jogos:', error);
     return [];
   }
 }
 
+// Carregar utilizadores do ficheiro de texto
 async function loadUsersFromTXT() {
   try {
+    // Buscar ficheiro de utilizadores
     const response = await fetch('files/users.txt', { cache: 'no-cache' });
     const lines = (await response.text()).trim().split(/\r?\n/);
     const users = lines.filter(l => l.trim()).map(line => {
@@ -72,7 +77,7 @@ async function loadUsersFromTXT() {
             }
           });
         } catch (e) {
-          console.log('Error parsing ratings:', e);
+          console.log('Erro ao processar avaliações:', e);
         }
       }
       
@@ -86,10 +91,10 @@ async function loadUsersFromTXT() {
         ratings: ratings
       };
     });
-    console.log(`Loaded ${users.length} users`);
+    console.log(`${users.length} utilizadores carregados`);
     return users;
   } catch (error) {
-    console.error('Error loading users:', error);
+    console.error('Erro ao carregar utilizadores:', error);
     return [];
   }
 }

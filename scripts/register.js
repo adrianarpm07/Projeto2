@@ -1,13 +1,17 @@
+// Evento de submissão do formulário de registo
 document.getElementById('register-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    // Obter valores do formulário
     const username = document.getElementById('username').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
 
+    // Validar se as passwords coincidem
     if (password !== confirmPassword) return alert('As palavras-passe não coincidem!');
 
     try {
+        // Carregar utilizadores existentes do ficheiro
         const response = await fetch('files/users.txt', { cache: 'no-cache' });
         const lines = (await response.text()).trim().split(/\r?\n/);
         
@@ -16,16 +20,20 @@ document.getElementById('register-form')?.addEventListener('submit', async (e) =
             return { id: parseInt(id), username: user, email: mail, password: pass, role };
         });
         
+        // Combinar utilizadores do ficheiro e localStorage
         const localUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
         const allUsers = [...fileUsers, ...localUsers];
         
+        // Validar duplicados
         if (allUsers.some(u => u.username === username)) return alert('Nome de utilizador já existe!');
         if (allUsers.some(u => u.email === email)) return alert('Email já registado!');
         
+        // Criar novo utilizador e guardar no localStorage
         const maxId = Math.max(...allUsers.map(u => u.id), 0);
         localUsers.push({ id: maxId + 1, username, email, password, role: 'user' });
         
         localStorage.setItem('registeredUsers', JSON.stringify(localUsers));
+        // Confirmação e redirecionamento
         alert('Registo efetuado com sucesso! Faz login.');
         window.location.href = 'login.html';
         
